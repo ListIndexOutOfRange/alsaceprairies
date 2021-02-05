@@ -1,6 +1,8 @@
 import streamlit as st
 from .liste_materiel import liste_materiel
-from time import sleep, time
+from .database import format_data_to_db
+from time import sleep # TEMPORARY ONLY
+
 
 
 NUMBER_INPUT_KWARGS = {"min_value": 0, "max_value": 1000, "value": 0}
@@ -61,21 +63,9 @@ def travail_resemis():
 
 def validation(caracteristiques, mecaniques, manuels, resemis, date):
     with st.spinner("Ajout du travail en cours..."):
-        # ENVOI A LA BDD ICI
+        format_data_to_db(caracteristiques, mecaniques, manuels, resemis, date)
         sleep(5)
     st.success("Travail enregistré !")
-
-
-#################################################################
-#                   FOR DEVELOPMENT ONLY
-#################################################################
-import pickle
-
-def save_sample_data(caracteristiques, mecaniques, manuels, resemis, date):
-    data = {'caracteristiques': caracteristiques, 'mecaniques': mecaniques,  
-            'manuels': manuels, 'resemis': resemis, 'date': date}
-    with open('sample_data.pickle', 'wb') as handle:
-        pickle.dump(data, handle)
 
 
 def content():
@@ -88,7 +78,3 @@ def content():
     st.markdown("____")
     if st.button("Valider"):
         validation(caracteristiques, mecaniques, manuels, resemis, date)
-    #################################################################
-    #                   FOR DEVELOPMENT ONLY
-    #################################################################
-    save_sample_data(caracteristiques, mecaniques, manuels, resemis, date)

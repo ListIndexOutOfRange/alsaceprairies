@@ -1,31 +1,21 @@
 import streamlit as st
-from google.cloud import firestore
+from .database import connect_and_dl_db, format_data_to_table
 
 NUMBER_INPUT_KWARGS = {"min_value": 0, "max_value": 1000, "value": 0}
 
-#################################################################
-#                   FOR DEVELOPMENT ONLY
-#################################################################
-import pickle
+def display(data, id):
+    doc = data.document(str(id)).get().to_dict()
+    st.subheader("Caractéristiques")
+    left, mid, right = st.beta_columns(3)
+    left.write(f"Numero de parcelle: {doc['caracteristiques']['numero']}")
+    mid.write(f"Surface: {doc['caracteristiques']['surface']} ha")
+    right.write(f"Pente: {doc['caracteristiques']['pente']}")
+    st.write(f"Date: {doc['date']}")
+    st.write("Work in progress")
 
-def load_data():
-    with open('sample_data.pickle', 'rb') as handle:
-        return pickle.load(handle)
-
-
-def connect_and_dl_db(key_path="firestore-key.json"):
-    db = firestore.Client.from_service_account_json(key_path)
-    collection = db.collection("travaux")
-    travaux = collection.get()
-    st.write(travaux)
-
-
-def display_full_data(data, id):
-    #st.write(data)
-    connect_and_dl_db()
 
 def infos(data):
-    nb_travaux = len(data)
+    nb_travaux = len(data.get())
     with st.beta_expander("Afficher plus d'informations sur un travail en cours"):
         st.write("Pour afficher plus d'information sur un travail en cours, \
             veuillez entrer son numéro (le numéro dans la colonne la plus à gauche) \
@@ -40,25 +30,11 @@ def infos(data):
             if id >= nb_travaux:
                 st.warning("Désolé, vous n'avez pas entré un numéro de travail en cours.")
             else:
-                display_full_data(data, id) 
-
-
-def format_data(data):
-    line = {}
-    line['Numero'] = data['caracteristiques']['numero']
-    line['Types de Travaux'] = ""
-    for type_travaux in ['mecaniques', 'manuels', 'resemis']:
-        if data[type_travaux]:
-            line['Types de Travaux'] += (type_travaux + ", ")
-    line['Types de Travaux'] = line['Types de Travaux'][:-2]
-    line['Types de Travaux'] = [line['Types de Travaux']]
-    line['Date'] = data['data'] 
-    return line
+                display(data, id) 
 
 
 def content():
     st.title("Travaux en cours")
-    data = load_data()
-    line = format_data(data)
-    st.table(line)
+    data = connect_and_dl_db()
+    st.table(*format_data_to_table(data))
     infos(data)
