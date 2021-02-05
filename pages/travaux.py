@@ -1,4 +1,5 @@
 import streamlit as st
+from google.cloud import firestore
 
 NUMBER_INPUT_KWARGS = {"min_value": 0, "max_value": 1000, "value": 0}
 
@@ -12,9 +13,16 @@ def load_data():
         return pickle.load(handle)
 
 
-def display_full_data(data, id):
-    st.write(data)
+def connect_and_dl_db(key_path="firestore-key.json"):
+    db = firestore.Client.from_service_account_json(key_path)
+    collection = db.collection("travaux")
+    travaux = collection.get()
+    st.write(travaux)
 
+
+def display_full_data(data, id):
+    #st.write(data)
+    connect_and_dl_db()
 
 def infos(data):
     nb_travaux = len(data)
